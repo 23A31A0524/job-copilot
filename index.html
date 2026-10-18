@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Job Copilot</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; display: flex; height: 100vh; }
+    #sidebar { width: 260px; background: #1f2937; color: white; padding: 20px; }
+    #sidebar select { width: 100%; padding: 8px; margin-bottom: 14px; }
+    #main { flex: 1; padding: 30px; background: #f3f4f6; overflow: auto; }
+    .boxes { display: flex; gap: 16px; }
+    textarea { flex: 1; height: 200px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; }
+    #analyze, #submitTest { margin-top: 16px; padding: 12px 24px; border: none; border-radius: 8px; background: #4f46e5; color: white; font-size: 16px; cursor: pointer; }
+    .step { background: white; border-left: 5px solid #4f46e5; padding: 10px 14px; margin: 10px 0; border-radius: 6px; }
+    .step label { display: block; margin: 4px 0; }
+    .bar { background: #d1d5db; border-radius: 10px; height: 22px; overflow: hidden; margin: 8px 0; }
+    .fill { background: #059669; height: 100%; }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <h2>Job Copilot</h2>
+    <p>Filters</p>
+    <select>
+      <option>Internship</option>
+      <option>Full-time</option>
+    </select>
+    <select>
+      <option>Fresher</option>
+      <option>1-3 years</option>
+    </select>
+  </div>
+
+  <div id="main">
+    <h1>How can I help with your career today?</h1>
+
+    <div class="boxes">
+      <textarea id="resume" placeholder="Paste your resume here..."></textarea>
+      <textarea id="job" placeholder="Paste the job description here..."></textarea>
+    </div>
+
+    <button id="analyze">Check my match</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    var skills = ["python", "javascript", "html", "css", "sql", "react", "git", "excel", "communication", "machine learning", "pandas", "arduino"];
+
+    var roadmap = {
+      "python":           { days: 14, learn: "Variables, loops, functions, lists. Then build one small project." },
+      "javascript":       { days: 14, learn: "Variables, functions, and changing a web page with code." },
+      "html":             { days: 3,  learn: "Headings, links, images, forms. Build a simple page." },
+      "css":              { days: 5,  learn: "Colors, spacing, flexbox. Style your own page." },
+      "sql":              { days: 7,  learn: "SELECT, WHERE, JOIN, GROUP BY. Practice on a sample database." },
+      "react":            { days: 21, learn: "Components, props, state. Learn JavaScript first." },
+      "git":              { days: 2,  learn: "commit, push, pull, branches. Upload one project to GitHub." },
+      "excel":            { days: 5,  learn: "Formulas, sorting, filters, pivot tables, charts." },
+      "communication":    { days: 10, learn: "Practice explaining your projects out loud in 2 minutes." },
+      "machine learning": { days: 30, learn: "Learn Python and Pandas first. Then train a simple model." },
+      "pandas":           { days: 7,  learn: "Read a CSV file, clean data, filter rows, group and summarize." },
+      "arduino":          { days: 7,  learn: "Blink an LED, read a sensor, control a motor." }
+    };
+
+    var quizzes = {
+      "python": { q: "Which line prints text on the screen in Python?", options: ['echo "Hi"', 'print("Hi")', 'console.log("Hi")'], answer: 1 },
+      "javascript": { q: "Which line creates a variable in JavaScript?", options: ["make x = 5;", "variable x : 5", "var x = 5;"], answer: 2 },
+      "html": { q: "Which tag makes the biggest heading?", options: ["&lt;p&gt;", "&lt;h1&gt;", "&lt;div&gt;"], answer: 1 },
+      "css": { q: "Which CSS property changes the text color?", options: ["color", "font-size", "margin"], answer: 0 },
+      "sql": { q: "Which command reads data from a table?", options: ["SELECT", "CREATE", "DROP"], answer: 0 },
+      "react": { q: "In React, a reusable piece of the page is called a...", options: ["loop", "component", "folder"], answer: 1 },
+      "git": { q: "Which command saves your changes as a snapshot in Git?", options: ["git paste", "git erase", "git commit"], answer: 2 },
+      "excel": { q: "Which Excel function adds up numbers?", options: ["ADDALL", "SUM", "PLUS"], answer: 1 },
+      "communication": { q: "What is the best way to explain a project in an interview?", options: ["Say it is too hard to explain", "Read the code line by line", "Explain the problem, what you built, and the result"], answer: 2 },
+      "machine learning": { q: "What is training data used for?", options: ["To style the website", "To teach the model patterns", "To store passwords"], answer: 1 },
+      "pandas": { q: "What does pd.read_csv('data.csv') do?", options: ["Deletes the file", "Sends an email", "Loads the CSV file into a table (DataFrame)"], answer: 2 },
+      "arduino": { q: "Which Arduino function runs again and again forever?", options: ["setup()", "loop()", "start()"], answer: 1 }
+    };
+
+    var currentMissing = [];
+    var totalNeeded = 0;
+    var alreadyHave = 0;
+
+    function checkTest() {
+      var score = 0;
+      for (var k = 0; k < currentMissing.length; k++) {
+        var chosen = document.querySelector("input[name='q" + k + "']:checked");
+        var quiz = quizzes[currentMissing[k]];
+        var feedback = document.getElementById("fb" + k);
+
+        if (chosen && Number(chosen.value) === quiz.answer) {
+          score = score + 1;
+          feedback.innerHTML = "<b>Correct!</b>";
+        } else {
+          feedback.innerHTML = "<b>Not quite.</b> Right answer: " + quiz.options[quiz.answer];
+        }
+      }
+
+      // Skills you had + skills you just proved with the test
+      var ready = Math.round((alreadyHave + score) / totalNeeded * 100);
+
+      var text = "<b>Your score: " + score + " out of " + currentMissing.length + "</b>";
+      text += "<h2>Job readiness: " + ready + "%</h2>";
+      text += "<div class='bar'><div class='fill' style='width:" + ready + "%'></div></div>";
+      if (ready === 100) {
+        text += "<p><b>You are job-ready for this role. Go apply!</b></p>";
+      } else {
+        text += "<p>Learn the skills you missed, then take the test again to reach 100%.</p>";
+      }
+      document.getElementById("score").innerHTML = text;
+    }
+
+    document.getElementById("analyze").onclick = function () {
+      var resume = document.getElementById("resume").value.toLowerCase();
+      var job = document.getElementById("job").value.toLowerCase();
+
+      var needed = [];
+      var missing = [];
+
+      for (var i = 0; i < skills.length; i++) {
+        var skill = skills[i];
+        if (job.includes(skill)) {
+          needed.push(skill);
+          if (!resume.includes(skill)) {
+            missing.push(skill);
+          }
+        }
+      }
+
+      if (needed.length === 0) {
+        document.getElementById("result").innerHTML = "<p>No known skills found in the job description.</p>";
+        return;
+      }
+
+      totalNeeded = needed.length;
+      alreadyHave = needed.length - missing.length;
+
+      var percent = Math.round(alreadyHave / totalNeeded * 100);
+
+      var html = "<h2>" + percent + "% match</h2>";
+      html += "<div class='bar'><div class='fill' style='width:" + percent + "%'></div></div>";
+      html += "<p><b>Missing skills:</b> " + (missing.length ? missing.join(", ") : "none, great job!") + "</p>";
+
+      if (missing.length > 0) {
+        missing.sort(function (a, b) { return roadmap[a].days - roadmap[b].days; });
+        currentMissing = missing;
+
+        html += "<h2>Your learning roadmap</h2>";
+        var totalDays = 0;
+
+        for (var j = 0; j < missing.length; j++) {
+          var item = roadmap[missing[j]];
+          totalDays = totalDays + item.days;
+          html += "<div class='step'><b>Step " + (j + 1) + ": " + missing[j] + "</b> (about " + item.days + " days)<br>" + item.learn + "</div>";
+        }
+
+        html += "<p><b>Total time: about " + totalDays + " days</b></p>";
+
+        html += "<h2>Skill test</h2>";
+        for (var m = 0; m < missing.length; m++) {
+          var test = quizzes[missing[m]];
+          html += "<div class='step'><b>" + missing[m] + ":</b> " + test.q;
+          for (var o = 0; o < test.options.length; o++) {
+            html += "<label><input type='radio' name='q" + m + "' value='" + o + "'> " + test.options[o] + "</label>";
+          }
+          html += "<span id='fb" + m + "'></span></div>";
+        }
+        html += "<button id='submitTest' onclick='checkTest()'>Check my answers</button>";
+        html += "<div id='score'></div>";
+      }
+
+      document.getElementById("result").innerHTML = html;
+    };
+  </script>
+
+</body>
+</html>
