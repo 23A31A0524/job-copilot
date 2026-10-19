@@ -1,177 +1,695 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Job Copilot</title>
-  <style>
-    body { margin: 0; font-family: Arial, sans-serif; display: flex; height: 100vh; }
-    #sidebar { width: 260px; background: #1f2937; color: white; padding: 20px; }
-    #sidebar select { width: 100%; padding: 8px; margin-bottom: 14px; }
-    #main { flex: 1; padding: 30px; background: #f3f4f6; overflow: auto; }
-    .boxes { display: flex; gap: 16px; }
-    textarea { flex: 1; height: 200px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; }
-    #analyze, #submitTest { margin-top: 16px; padding: 12px 24px; border: none; border-radius: 8px; background: #4f46e5; color: white; font-size: 16px; cursor: pointer; }
-    .step { background: white; border-left: 5px solid #4f46e5; padding: 10px 14px; margin: 10px 0; border-radius: 6px; }
-    .step label { display: block; margin: 4px 0; }
-    .bar { background: #d1d5db; border-radius: 10px; height: 22px; overflow: hidden; margin: 8px 0; }
-    .fill { background: #059669; height: 100%; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Ready Hub</title>
+<style>
+body{--bg:#f3f4f6;--card:#fff;--cardbg:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--accent:#4f46e5;--bt:#fff;--side:#1f2937;--st:#fff;margin:0;font-family:Arial,sans-serif;display:flex;height:100vh}
+body.dark{--bg:#0a0e0c;--card:#141b17;--cardbg:linear-gradient(135deg,#1f3329,#111714);--text:#f3f4f6;--muted:#9ca3af;--line:#27322c;--accent:#1ba94c;--side:#070a08;--st:#e5e7eb}
+#sidebar{width:250px;background:var(--side);color:var(--st);padding:16px;box-sizing:border-box;display:flex;flex-direction:column;position:relative}
+#sidebar h2{margin:0 0 12px}
+#newBtn{padding:10px;border:1px solid #4b5563;border-radius:8px;background:none;color:var(--st);cursor:pointer;text-align:left}
+.nh{margin:20px 0 6px;font-size:13px;opacity:.7}
+#history{flex:1;overflow:auto}
+.hi{display:flex;align-items:center;padding:5px 4px 5px 10px;border-radius:6px;font-size:14px}
+.hi:hover,#newBtn:hover{background:rgba(255,255,255,.1)}
+.ht{flex:1;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dots{background:none;border:none;color:var(--st);font-size:20px;cursor:pointer;padding:0 8px}
+#hmenu{display:none;position:fixed;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px;z-index:20}
+#hmenu button,.mi{display:block;width:100%;padding:8px 12px;border:none;background:none;color:var(--text);cursor:pointer;text-align:left;font-size:14px;border-radius:6px}
+#hmenu button{color:#ef4444}
+#hmenu button:hover,.mi:hover{background:rgba(128,128,128,.2)}
+#gear{width:44px;height:44px;border-radius:50%;border:none;background:#4b5563;color:#fff;font-size:22px;cursor:pointer;margin-top:10px;align-self:flex-start}
+#settings{display:none;position:absolute;left:12px;bottom:64px;width:210px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:6px;z-index:5}
+#apRow{display:none;padding:4px 12px 8px}
+#main{flex:1;padding:14px 26px 30px;background:var(--bg);color:var(--text);overflow:auto}
+#topbar{display:flex;align-items:center;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;flex-wrap:wrap}
+.sp{flex:1}
+.tab{background:none;border:none;color:var(--muted);font-size:15px;padding:8px 10px;cursor:pointer;border-bottom:3px solid transparent}
+.tab.on{color:var(--text);border-bottom-color:var(--accent);font-weight:bold}
+#loginBtn{padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--bt);cursor:pointer}
+#avatar{display:none;align-items:center;gap:8px;cursor:pointer}
+#avatar .c{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--bt);display:flex;align-items:center;justify-content:center;font-weight:bold}
+.view{display:none}.view.on{display:block}
+select,input{padding:7px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+.filters{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.chip{padding:6px 12px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;font-size:13px;display:inline-block;margin:3px 3px 3px 0;text-decoration:none}
+.chip.active{background:var(--accent);color:var(--bt);border-color:var(--accent)}
+.boxes{display:flex;gap:14px}
+.card{flex:1;background:var(--cardbg);border:1px solid var(--line);border-radius:12px;padding:12px}
+.ch{display:flex;justify-content:space-between;margin-bottom:8px}
+.muted{color:var(--muted);font-size:12px}
+textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-family:inherit}
+.card textarea{height:140px}
+.code{height:140px;font-family:Consolas,monospace}
+button.go{margin-top:12px;padding:11px 22px;border:none;border-radius:8px;background:var(--accent);color:var(--bt);font-size:15px;cursor:pointer}
+.step{background:var(--card);border-left:5px solid var(--accent);padding:10px 14px;margin:10px 0;border-radius:6px}
+.step label{display:block;margin:4px 0}
+.tip{border-left-color:#f59e0b}
+.bar{background:var(--line);border-radius:10px;height:20px;overflow:hidden;margin:8px 0}
+.fill{background:var(--accent);height:100%}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:500px}
+.head{font-weight:bold;text-align:center;font-size:12px;color:var(--muted)}
+.cell{border-radius:6px;padding:6px 2px;text-align:center;font-size:12px;color:#fff}
+.cell.today{outline:3px solid #f59e0b}
+.lg span{display:inline-block;color:#fff;padding:3px 10px;border-radius:12px;margin:4px 6px 4px 0;font-size:13px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:12px}
+.dcard{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;min-height:90px}
+.dcard:hover{border-color:var(--accent)}
+.dcard b{font-size:18px;display:block;margin-bottom:6px}
+.clock{font-weight:bold;color:#f59e0b;margin:8px 0}
+pre{background:var(--bg);border:1px solid var(--line);padding:10px;border-radius:8px;overflow:auto}
+details{background:var(--bg);border-left:5px solid var(--accent);border-radius:6px;margin:8px 0;padding:8px 12px}
+summary{cursor:pointer;font-weight:bold}
+details p{margin:8px 0}
+#ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:30}
+#mbox{width:380px;max-width:92%;max-height:82vh;overflow:auto;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:22px}
+#mbox h2{margin:0 0 10px}
+#mbox input{width:100%;padding:9px;margin-bottom:10px;box-sizing:border-box}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;gap:10px}
+.mb{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.err{color:#f87171}.ok{color:#22c55e}
+#sw{position:relative}
+#qres{display:none;position:absolute;right:0;top:36px;width:290px;max-height:260px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;z-index:15}
+#qres div{padding:9px 12px;cursor:pointer}
+#qres div:hover{background:rgba(128,128,128,.2)}
+</style>
 </head>
 <body>
 
-  <div id="sidebar">
-    <h2>Job Copilot</h2>
-    <p>Filters</p>
-    <select>
-      <option>Internship</option>
-      <option>Full-time</option>
-    </select>
-    <select>
-      <option>Fresher</option>
-      <option>1-3 years</option>
-    </select>
+<div id="sidebar">
+  <h2>Job Ready Hub</h2>
+  <button id="newBtn">+ New analysis</button>
+  <div class="nh">History</div>
+  <div id="history"></div>
+  <div id="settings">
+    <button class="mi" data-a="profile">Profile</button>
+    <button class="mi" data-a="appear">Appearance</button>
+    <div id="apRow"><button class="chip" id="lightBtn">Light</button><button class="chip" id="darkBtn">Dark</button></div>
+    <button class="mi" data-a="board">Leaderboard</button>
+    <button class="mi" data-a="tt">Study Timetable</button>
+    <button class="mi" data-a="marks">Bookmarks</button>
+    <button class="mi" data-a="subs">Submissions</button>
+    <button class="mi" data-a="logout">Logout</button>
+  </div>
+  <button id="gear" title="Settings">&#9881;</button>
+</div>
+<div id="hmenu"><button id="delBtn">Delete</button></div>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tab on" data-v="dash">Dashboard</button>
+    <button class="tab" data-v="match">Job Match</button>
+    <button class="tab" data-v="practice">Problems</button>
+    <select id="fieldSel" title="Your field"></select>
+    <div id="sw"><input id="q" placeholder="Search..." style="width:170px"><div id="qres"></div></div>
+    <div class="sp"></div>
+    <button id="loginBtn">Login</button>
+    <div id="avatar"><span class="c" id="avL"></span><span id="avN"></span></div>
   </div>
 
-  <div id="main">
-    <h1>How can I help with your career today?</h1>
+  <div class="view on" id="v_dash"></div>
 
-    <div class="boxes">
-      <textarea id="resume" placeholder="Paste your resume here..."></textarea>
-      <textarea id="job" placeholder="Paste the job description here..."></textarea>
+  <div class="view" id="v_match">
+    <div class="filters">
+      <label>Job type <select id="jobType"><option value="internship">Internship</option><option value="fulltime">Full-time</option><option value="parttime">Part-time</option><option value="remote">Remote</option></select></label>
+      <label>Experience <select id="exp"><option value="fresher">Fresher</option><option value="junior">1-3 years</option><option value="mid">3-5 years</option></select></label>
+      <label>Study time <select id="hoursSel"><option value="1">1 hour</option><option value="2" selected>2 hours</option><option value="custom">Custom</option></select></label>
+      <input id="customHours" type="number" min="0.5" max="12" step="0.5" placeholder="hours per day" style="display:none;width:120px">
     </div>
-
-    <button id="analyze">Check my match</button>
-
+    <div class="boxes">
+      <div class="card">
+        <div class="ch"><b>1. Your resume</b><span class="muted" id="rc">0 words</span></div>
+        <textarea id="resume" placeholder="Paste your resume, or upload a .txt file..."></textarea>
+        <div><label class="chip">Upload .txt<input type="file" id="rfile" accept=".txt" hidden></label><button class="chip" id="rsample">Use sample</button><button class="chip" id="rclear">Clear</button></div>
+      </div>
+      <div class="card">
+        <div class="ch"><b>2. Job description</b><span class="muted" id="jc">0 words</span></div>
+        <textarea id="job" placeholder="Paste the job description, or pick a sample role..."></textarea>
+        <div><label class="chip">Upload .txt<input type="file" id="jfile" accept=".txt" hidden></label><select id="roleSel"></select><button class="chip" id="jclear">Clear</button></div>
+      </div>
+    </div>
+    <button class="go" id="analyze">Check my match</button>
     <div id="result"></div>
   </div>
 
-  <script>
-    var skills = ["python", "javascript", "html", "css", "sql", "react", "git", "excel", "communication", "machine learning", "pandas", "arduino"];
+  <div class="view" id="v_practice">
+    <h2>Problems</h2>
+    <div id="codeWrap"><h3>Coding challenges</h3><div id="codeList"></div><div id="codeArea"></div></div>
+    <h3>Skill quizzes</h3>
+    <div class="muted">Click a skill to take its quiz. Click &#9734; to bookmark it.</div>
+    <div id="skillList"></div>
+    <div class="step"><b>Skills contest</b><br><span id="cinfo"></span><br><button class="go" id="startContest">Start contest</button></div>
+    <div id="testArea"></div>
+  </div>
 
-    var roadmap = {
-      "python":           { days: 14, learn: "Variables, loops, functions, lists. Then build one small project." },
-      "javascript":       { days: 14, learn: "Variables, functions, and changing a web page with code." },
-      "html":             { days: 3,  learn: "Headings, links, images, forms. Build a simple page." },
-      "css":              { days: 5,  learn: "Colors, spacing, flexbox. Style your own page." },
-      "sql":              { days: 7,  learn: "SELECT, WHERE, JOIN, GROUP BY. Practice on a sample database." },
-      "react":            { days: 21, learn: "Components, props, state. Learn JavaScript first." },
-      "git":              { days: 2,  learn: "commit, push, pull, branches. Upload one project to GitHub." },
-      "excel":            { days: 5,  learn: "Formulas, sorting, filters, pivot tables, charts." },
-      "communication":    { days: 10, learn: "Practice explaining your projects out loud in 2 minutes." },
-      "machine learning": { days: 30, learn: "Learn Python and Pandas first. Then train a simple model." },
-      "pandas":           { days: 7,  learn: "Read a CSV file, clean data, filter rows, group and summarize." },
-      "arduino":          { days: 7,  learn: "Blink an LED, read a sensor, control a motor." }
-    };
+  <div class="view" id="v_page"><div id="pg"></div></div>
+</div>
 
-    var quizzes = {
-      "python": { q: "Which line prints text on the screen in Python?", options: ['echo "Hi"', 'print("Hi")', 'console.log("Hi")'], answer: 1 },
-      "javascript": { q: "Which line creates a variable in JavaScript?", options: ["make x = 5;", "variable x : 5", "var x = 5;"], answer: 2 },
-      "html": { q: "Which tag makes the biggest heading?", options: ["&lt;p&gt;", "&lt;h1&gt;", "&lt;div&gt;"], answer: 1 },
-      "css": { q: "Which CSS property changes the text color?", options: ["color", "font-size", "margin"], answer: 0 },
-      "sql": { q: "Which command reads data from a table?", options: ["SELECT", "CREATE", "DROP"], answer: 0 },
-      "react": { q: "In React, a reusable piece of the page is called a...", options: ["loop", "component", "folder"], answer: 1 },
-      "git": { q: "Which command saves your changes as a snapshot in Git?", options: ["git paste", "git erase", "git commit"], answer: 2 },
-      "excel": { q: "Which Excel function adds up numbers?", options: ["ADDALL", "SUM", "PLUS"], answer: 1 },
-      "communication": { q: "What is the best way to explain a project in an interview?", options: ["Say it is too hard to explain", "Read the code line by line", "Explain the problem, what you built, and the result"], answer: 2 },
-      "machine learning": { q: "What is training data used for?", options: ["To style the website", "To teach the model patterns", "To store passwords"], answer: 1 },
-      "pandas": { q: "What does pd.read_csv('data.csv') do?", options: ["Deletes the file", "Sends an email", "Loads the CSV file into a table (DataFrame)"], answer: 2 },
-      "arduino": { q: "Which Arduino function runs again and again forever?", options: ["setup()", "loop()", "start()"], answer: 1 }
-    };
+<div id="ov"><div id="mbox"></div></div>
 
-    var currentMissing = [];
-    var totalNeeded = 0;
-    var alreadyHave = 0;
+<script>
+/* ===== SKILLS: name:[days, what to learn, [3 study steps], question, [options], right option, project idea] ===== */
+var S={
+"python":[14,"Variables, loops, functions, lists, dictionaries.",["Variables, input and if/else","Loops, lists, dictionaries, functions","Build a small project"],"Which line prints text in Python?",['echo "Hi"','print("Hi")','console.log("Hi")'],1,"Make an expense tracker or quiz game that saves data in a file."],
+"javascript":[14,"Variables, functions, arrays, and changing a web page with code.",["Variables, functions, loops","Arrays, objects and the DOM","Build a to-do list"],"Which line creates a variable in JavaScript?",["make x = 5;","variable x : 5","var x = 5;"],2,"Build a to-do list or calculator web page."],
+"html":[3,"Headings, links, images, lists, tables, forms.",["Headings, links, images","Lists, tables, forms","Build a profile page"],"Which tag makes the biggest heading?",["&lt;p&gt;","&lt;h1&gt;","&lt;div&gt;"],1,"Make a one-page personal profile website."],
+"css":[5,"Colors, fonts, spacing, flexbox.",["Colors, fonts, box model","Flexbox layouts","Style your profile page"],"Which CSS property changes text color?",["color","font-size","margin"],0,"Style your profile page so it looks good on a phone."],
+"sql":[7,"SELECT, WHERE, ORDER BY, GROUP BY, JOIN.",["SELECT, WHERE, ORDER BY","GROUP BY, COUNT, JOIN","Solve 10 practice queries"],"Which command reads data from a table?",["SELECT","CREATE","DROP"],0,"Design a small student database and write 10 queries."],
+"react":[21,"Components, props, state. Learn JavaScript first.",["Components, JSX, props","State and events","Build a notes app"],"In React, a reusable piece of UI is a...",["loop","component","folder"],1,"Build a notes or weather app with components."],
+"git":[2,"commit, push, pull, branches.",["git init, add, commit","Branches, push, pull on GitHub","Upload a project with a README"],"Which command saves a snapshot in Git?",["git paste","git erase","git commit"],2,"Upload any project to GitHub with a README."],
+"excel":[5,"Formulas, sorting, filters, pivot tables, charts.",["SUM, AVERAGE, IF","Sorting, filters, VLOOKUP","Pivot tables and charts"],"Which function adds up numbers?",["ADDALL","SUM","PLUS"],1,"Make a monthly budget sheet with a pivot table and chart."],
+"communication":[10,"Speaking clearly about yourself and your work.",["Write a 2-minute introduction","Explain a project aloud and record it","Practice with a friend for feedback"],"Best way to explain a project?",["Say it is too hard","Read the code line by line","Problem, what you did, result"],2,"Record a 2-minute video explaining your best project."],
+"machine learning":[30,"Learn Python and Pandas first. Then train a simple model.",["Python, NumPy, Pandas","Training, testing, simple models","Train a model and explain results"],"What is training data used for?",["Styling a site","Teaching the model patterns","Storing passwords"],1,"Train a model to predict house prices or detect spam."],
+"pandas":[7,"Read CSV, clean data, filter, group.",["Read a CSV, head, info","Clean missing values, filter","Group, summarize, chart"],"What does pd.read_csv() do?",["Deletes a file","Sends email","Loads a CSV into a DataFrame"],2,"Analyze a CSV dataset and make 3 charts."],
+"arduino":[7,"Blink an LED, read a sensor, control a motor.",["Blink an LED, setup and loop","Read a sensor","Build and document a project"],"Which Arduino function runs forever?",["setup()","loop()","start()"],1,"Build an automatic plant watering or distance sensor project."],
+"circuit analysis":[14,"Ohm's law, Kirchhoff's laws, series and parallel circuits.",["Ohm's and Kirchhoff's laws","Series, parallel, mesh analysis","Thevenin theorem and 10 problems"],"Which law says current entering a node equals current leaving it?",["Ohm's law","Kirchhoff's current law","Faraday's law"],1,"Simulate a circuit in Proteus or Multisim and match it with hand calculations."],
+"digital electronics":[14,"Logic gates, Boolean algebra, flip-flops, counters.",["Gates and truth tables","Boolean algebra","Flip-flops, counters, 10 problems"],"Which gate outputs 1 only when both inputs are 1?",["OR","AND","NOT"],1,"Design a 4-bit counter or traffic light controller."],
+"embedded c":[21,"C basics, pointers, registers, timers, interrupts.",["C basics and functions","Pointers and registers","Timers, interrupts, a board project"],"Which keyword marks a variable that can change outside the program?",["const","volatile","static"],1,"Program a microcontroller to read a sensor and show it on an LCD."],
+"matlab":[10,"Matrices, plotting, scripts, signal processing.",["Matrices and basic commands","Scripts, functions, plots","Process a signal and plot it"],"Which command plots y against x in MATLAB?",["plot(x, y)","draw(x, y)","graph(x, y)"],0,"Plot and filter a noisy signal."],
+"autocad":[14,"2D drawing, layers, dimensions, printing.",["LINE, CIRCLE, basic commands","Layers, dimensions, text","Draw a part or house plan and print"],"Which AutoCAD command draws a straight line?",["LINE","TRIM","OFFSET"],0,"Draw a house plan or a machine part with dimensions."],
+"solidworks":[21,"Sketches, 3D parts, assemblies, drawings.",["Sketches and extrude","Parts, assemblies, mates","Make a drawing sheet"],"What do you create first in a new SolidWorks part?",["A sketch","An assembly","A drawing sheet"],0,"Model a small assembly, like a vise or gearbox."],
+"thermodynamics":[21,"Laws, heat engines, cycles, entropy.",["Basic terms, zeroth and first laws","Second law, entropy","Otto, Diesel, Rankine cycles"],"Which law introduces entropy?",["Zeroth law","Second law","First law"],1,"Calculate the efficiency of a simple engine cycle in Excel."],
+"manufacturing":[14,"Casting, welding, machining, forming, 3D printing.",["Casting and forming","Welding and joining","Lathe, milling, 3D printing"],"Which machine makes round parts by rotating the workpiece?",["Lathe","Drill press","Hacksaw"],0,"Make a process plan for a simple part."],
+"staad pro":[21,"Modeling beams and frames, loads, analysis, design checks.",["Nodes and members","Supports, loads, analysis","Design checks on a small frame"],"STAAD Pro is mainly used for...",["Structural analysis and design","Photo editing","Accounting"],0,"Model and analyze a 2-storey frame."],
+"surveying":[14,"Chain, compass, leveling, theodolite.",["Chain and compass survey","Leveling and contours","Theodolite and total station"],"Which instrument measures horizontal and vertical angles?",["Theodolite","Thermometer","Barometer"],0,"Survey a small plot and draw its plan."],
+"concrete technology":[14,"Cement, aggregates, water-cement ratio, curing, tests.",["Cement, sand, aggregates","Water-cement ratio, slump test","Curing and cube strength tests"],"Curing of concrete means...",["Keeping it moist to gain strength","Painting it","Cutting it"],0,"Make a mix design and test cube strength."],
+"tally":[10,"Company setup, ledgers, vouchers, GST entries.",["Create a company and ledgers","Sales, purchase, payment vouchers","GST entries and reports"],"In Tally, one transaction is entered as a...",["Voucher","Folder","Poster"],0,"Create a sample company with a month of entries and GST."],
+"gst":[7,"CGST, SGST, IGST, invoices, returns, input credit.",["GST types and rates","Invoices and input tax credit","Return filing practice"],"Which GST applies when goods move between states?",["IGST","CGST only","SGST only"],0,"Prepare GST invoices and a sample return worksheet."],
+"accounting":[21,"Journal, ledger, trial balance, final accounts.",["Rules, journal, ledger","Trial balance, adjustments","Final accounts, 10 problems"],"The basic accounting equation is...",["Assets = Liabilities + Equity","Profit = Cost","Cash = Credit"],0,"Prepare final accounts for a small shop."],
+"taxation":[14,"Income tax basics, TDS, deductions, returns.",["Income heads and slabs","Deductions and TDS","File a practice return"],"TDS stands for...",["Tax Deducted at Source","Total Debit System","Tax Delivery Service"],0,"Prepare a sample income tax computation."],
+"patient care":[14,"Vital signs, hygiene, safe handling, kind communication.",["Measure and record vitals","Hygiene and infection control","Talk with patients, role play"],"Best way to stop infection spreading between patients?",["Hand hygiene","Reusing gloves all day","Skipping cleaning"],0,"Prepare a patient care plan for a sample case."],
+"first aid":[7,"CPR basics, bleeding, burns, fractures.",["Check scene, call help, CPR steps","Bleeding, burns, fractures","Practice with a certified trainer"],"First step for severe bleeding?",["Apply firm direct pressure","Give water","Wait"],0,"Make a first aid poster and demonstrate CPR steps to a friend."],
+"pharmacology":[30,"Drug classes, forms, routes, side effects.",["Drug classes and action","Routes and dose forms","Side effects, interactions, 10 questions"],"Which route puts a drug directly into a vein?",["Intravenous","Oral","Topical"],0,"Make a drug chart with class, use and side effects for 20 drugs."],
+"anatomy":[30,"Body systems, organs, bones, muscles.",["Skeletal and muscular systems","Heart, blood, respiratory system","Digestive, nervous, urinary systems"],"Which organ pumps blood around the body?",["Heart","Liver","Kidney"],0,"Make labelled diagrams for one body system."]
+};
 
-    function checkTest() {
-      var score = 0;
-      for (var k = 0; k < currentMissing.length; k++) {
-        var chosen = document.querySelector("input[name='q" + k + "']:checked");
-        var quiz = quizzes[currentMissing[k]];
-        var feedback = document.getElementById("fb" + k);
+/* ===== FIELDS ===== */
+var SITES={it:[["W3Schools","https://www.w3schools.com"],["freeCodeCamp","https://www.freecodecamp.org"],["GeeksforGeeks","https://www.geeksforgeeks.org"]],eng:[["NPTEL (free IIT courses)","https://nptel.ac.in"],["SWAYAM","https://swayam.gov.in"],["Khan Academy","https://www.khanacademy.org"]],biz:[["SWAYAM","https://swayam.gov.in"],["Khan Academy","https://www.khanacademy.org"]],med:[["Khan Academy","https://www.khanacademy.org"],["SWAYAM","https://swayam.gov.in"]]};
+var FD={
+"IT / Software":{t:"it",s:["python","javascript","html","css","sql","react","git","excel","communication","machine learning","pandas","arduino"],
+ roles:{"Data Science Intern":"We need Python, SQL, Pandas and machine learning. Excel and communication are a plus.","Web Developer":"Looking for HTML, CSS, JavaScript, React and Git. Good communication needed.","Data Analyst":"SQL, Excel, Python, Pandas and strong communication skills."},
+ resume:"Final year B.Tech student. Built a Fake News Detection project using Python and HTML. Made a plant watering system with Arduino. Good communication.",
+ tech:[["What is the difference between a list and a dictionary in Python?",["index","key","value","order"],"A list stores items in order and you reach them by index. A dictionary stores key and value pairs and you look up a value by its key."],["What is Git and why do we use it?",["version","code","commit","team"],"Git is a version control tool. It saves the history of our code with commits and lets a team work together safely."],["Explain HTML, CSS and JavaScript.",["structure","style","behavior","page"],"HTML gives the structure of a page, CSS gives the style, and JavaScript adds behavior so the page is interactive."]],
+ kit:["Online presence",[["GitHub with READMEs","Every project needs a README that explains what it does and how to run it."],["Pin your best 3 projects","Pinned repositories are the first thing recruiters see on your profile."],["Share what you learn","Post one thing you learned each week to build a visible track record."]]]},
+"ECE / Electronics":{t:"eng",s:["circuit analysis","digital electronics","embedded c","matlab","arduino","communication"],
+ roles:{"Embedded Trainee":"Looking for embedded c, digital electronics and arduino skills. Good communication needed.","Electronics Trainee":"Circuit analysis, matlab and communication."},
+ resume:"Final year B.Tech ECE student. Built an Arduino plant watering system. Studied digital electronics. Good communication.",
+ tech:[["What is the difference between analog and digital signals?",["continuous","discrete","noise","values"],"An analog signal is continuous and can take any value. A digital signal is discrete with fixed levels like 0 and 1, so it handles noise better."],["What does a microcontroller do?",["chip","program","input","output"],"A microcontroller is a small chip with a processor, memory and input and output pins. We program it to read sensors and control devices."],["Explain Ohm's law.",["voltage","current","resistance","proportional"],"Voltage across a conductor is directly proportional to the current through it, so V equals I times R."]],
+ kit:["ECE career steps",[["Pick your lane","Choose embedded, VLSI, communication or power electronics and focus on it."],["Build 2 hardware projects","Make one circuit and one microcontroller project. Photograph them and write a short description."],["Prepare for exams","Core jobs and PSUs use GATE or company tests. Revise basics every day."]]]},
+"Mechanical":{t:"eng",s:["autocad","solidworks","thermodynamics","manufacturing","communication"],
+ roles:{"Design Engineer Trainee":"AutoCAD, SolidWorks and thermodynamics knowledge needed. Good communication.","Production Trainee":"Manufacturing, AutoCAD and communication."},
+ resume:"Final year B.Tech Mechanical student. Made drawings in AutoCAD and a 3D part in SolidWorks. Studied thermodynamics. Good communication.",
+ tech:[["Explain the four strokes of a petrol engine.",["intake","compression","power","exhaust"],"Intake brings in the mixture, compression squeezes it, power is the spark pushing the piston, and exhaust removes the burnt gases."],["What is the difference between stress and strain?",["force","area","deformation","length"],"Stress is force per unit area inside a material. Strain is the change in length divided by the original length."],["Why do we use CAD software?",["drawing","design","accurate","3d"],"CAD gives accurate 2D drawings and 3D models, lets us change designs quickly, and shares drawings for manufacturing."]],
+ kit:["Mechanical career steps",[["Pick your lane","Choose design, production or maintenance and learn the tools that lane uses."],["Keep a drawing portfolio","Save your best AutoCAD and SolidWorks models as images or PDFs."],["Prepare for exams","GATE, PSU and company tests check thermodynamics and mechanics basics."]]]},
+"Civil":{t:"eng",s:["autocad","staad pro","surveying","concrete technology","communication"],
+ roles:{"Site Engineer Trainee":"Surveying, concrete technology, AutoCAD and good communication.","Structural Design Intern":"STAAD Pro, AutoCAD and surveying needed."},
+ resume:"Final year B.Tech Civil student. Did a surveying camp and drew a house plan in AutoCAD. Studied concrete technology. Good communication.",
+ tech:[["What are cement, sand and aggregate for in concrete?",["binder","fine","coarse","strength"],"Cement with water is the binder. Sand is the fine aggregate that fills gaps, and coarse aggregate gives bulk and strength."],["What is the difference between dead load and live load?",["permanent","weight","people","moving"],"Dead load is the permanent weight of the structure itself. Live load changes, like people, furniture and vehicles."],["Why is soil tested before construction?",["bearing","foundation","settlement","safe"],"Soil testing tells us the bearing capacity so we can design a safe foundation and avoid settlement."]],
+ kit:["Civil career steps",[["Pick your lane","Choose site execution, structural design or estimation and focus on its tools and exams."],["Get real site exposure","Do a summer internship on a site and note materials and safety rules."],["Prepare for exams","GATE and state engineering service exams check core civil basics."]]]},
+"Commerce / Finance":{t:"biz",s:["tally","gst","accounting","taxation","excel","communication"],
+ roles:{"Accounts Executive":"Tally, GST, accounting and Excel are required. Good communication.","Tax Associate":"Taxation, GST, Excel and accounting knowledge."},
+ resume:"B.Com final year student. Learned accounting and Tally in college. Did a project on GST. Good communication.",
+ tech:[["What are debit and credit in accounting?",["left","right","entry","balance"],"Every transaction has a debit and a credit entry. Debits go on the left and credits on the right, keeping the books balanced."],["Balance sheet versus profit and loss account?",["assets","liabilities","income","expenses"],"A balance sheet shows assets, liabilities and equity at one date. A profit and loss account shows income and expenses over a period."],["What is GST and who pays it?",["tax","consumer","goods","input"],"GST is an indirect tax on goods and services. The final consumer pays it and businesses claim input tax credit."]],
+ kit:["Commerce career steps",[["Pick your lane","Choose accounts, tax, audit or analysis and learn what that role does daily."],["Learn Tally and GST by doing","Make a sample company and enter a month of sales, purchase and GST entries."],["Think about certifications","CA, CMA, and Tally or GST certificates make your resume stronger."]]]},
+"Healthcare (Nursing / Pharmacy)":{t:"med",s:["patient care","first aid","pharmacology","anatomy","communication"],
+ roles:{"Staff Nurse Trainee":"Patient care, first aid and good communication.","Pharmacy Assistant":"Pharmacology, anatomy and communication."},
+ resume:"Final year nursing student. Completed hospital training and a first aid certificate. Studied anatomy and pharmacology. Good communication.",
+ tech:[["Why is hand hygiene important in a hospital?",["infection","patients","spread","germs"],"Hand hygiene stops germs spreading between patients and staff. We clean our hands before and after touching a patient."],["What would you do if a patient becomes unresponsive?",["check","help","call","breathing"],"Check response and breathing, call the emergency team at once, and start CPR if the patient is not breathing, following hospital protocol."],["How do you keep patient information confidential?",["authorized","consent","records","privacy"],"Share information only with authorized staff who need it, keep records secure, and never discuss patients in public."]],
+ kit:["Healthcare career steps",[["Check your registration","Confirm your council registration and any license your role needs."],["Log your clinical exposure","Write down hospital training hours and procedures you assisted with."],["Get a life support certificate","Many employers ask for a BLS or first aid certificate."]]]}
+};
 
-        if (chosen && Number(chosen.value) === quiz.answer) {
-          score = score + 1;
-          feedback.innerHTML = "<b>Correct!</b>";
-        } else {
-          feedback.innerHTML = "<b>Not quite.</b> Right answer: " + quiz.options[quiz.answer];
-        }
-      }
+/* ===== guides (kits): [title, steps [title, details], links] ===== */
+var KG=[
+["How to create your resume",[
+["1. Choose a tool","Open Canva (free) and search 'resume', or use a Word or Google Docs template. Pick a simple one-page template with no photos, bright colors or fancy boxes. Recruiters read many resumes, so plain and clean wins."],
+["2. Write your name and contact","Put your full name big at the top. Under it write your phone number, a professional email (like firstname.lastname@gmail.com), your city, and your LinkedIn link. Add GitHub only if you have projects there."],
+["3. Write a 2-line objective","Two lines only: who you are, your field and what you want. Example: 'Final year ECE student with hands-on Arduino projects, looking for an embedded trainee role.'"],
+["4. Add your education","Write your college name, degree and branch, year, and your CGPA or percentage. Then add Intermediate or 12th (college and percentage), then 10th (school and percentage). Always put the latest first."],
+["5. List your skills","Make short groups: Technical skills, Tools, Soft skills. Write only what you can explain in an interview. Use the same words as the job description. Job Match in this app shows what the job asks for."],
+["6. Add 2 or 3 projects","For each project write: name, one line on what it does, the tools you used, and one result. Example: 'Plant watering system - Arduino, soil sensor - waters plants automatically.'"],
+["7. Add internships, training and certificates","List any internship, workshop or online course with the name, place and date. Even a free course certificate helps a fresher."],
+["8. Add achievements and activities","Hackathons, college clubs, sports, volunteering, prizes. Keep it to 3 or 4 short lines."],
+["9. Check and download","Check spelling, keep it to one page, and ask a friend to read it. Download as PDF and name it YourName_Resume.pdf. Open it on your phone to check it looks right."]],
+[["Open Canva","https://www.canva.com"]]],
+["How to create and use LinkedIn",[
+["1. Download the app","On your phone open the Play Store (Android) or App Store (iPhone), search 'LinkedIn', and install it. You can also use it on a laptop at linkedin.com."],
+["2. Create your account","Tap Join now. Enter your email or phone number, a password, and your real first and last name. Verify with the code sent to your email or phone. Use your real name, because recruiters search for it."],
+["3. Add a photo and banner","Upload a clear photo of your face with a plain background and neat clothes. A simple banner picture is optional."],
+["4. Write your headline","This is the line under your name. Example: 'B.Tech ECE student | Embedded C | Arduino | Looking for internships'. Do not just write 'Student'."],
+["5. Fill About, Education and Skills","About: 3 or 4 lines on who you are and what you want. Add your college, branch and years, then add 5 or more skills and your projects and certificates."],
+["6. Set your profile link (username)","Tap your profile, then 'Edit public profile and URL', and set it to something like linkedin.com/in/yourname. Put this link on your resume."],
+["7. Connect with people","Send 5 requests a day to classmates, seniors, teachers and people who work in your field. Add a short note, like 'Hello, I am a final year ECE student and would like to learn from your work.'"],
+["8. Post regularly","Post once a week. Share a project you built, something you learned, or a certificate you earned. Write 3 or 4 simple lines and add a photo. This shows recruiters you are active."],
+["9. Find jobs","Open the Jobs tab. Search the role and your city, for example 'Embedded intern Hyderabad'. Use filters: Entry level or Internship, and Date posted. Turn on Job alerts so new jobs come to you."],
+["10. Apply and message","Click Easy Apply and upload your PDF resume. You can also message the recruiter politely: who you are, the job you applied for, and thanks. Turn on 'Open to work' for recruiters only if you want."]],
+[["Open LinkedIn","https://www.linkedin.com"],["LinkedIn Jobs","https://www.linkedin.com/jobs/"]]],
+["HR interview tips",[
+["1. Tell me about yourself","Answer in 1 minute: who you are, your skills and projects, and your goal. Practice it aloud 5 times."],
+["2. Research the company","Read their website and mention one thing you liked about their work."],
+["3. Use real examples","Back every claim with a short story from a project or college life."],
+["4. Ask questions at the end","Ask about the team or how freshers learn. It shows interest."],
+["5. Be neat and on time","Dress simply, test your internet for online rounds, and join 10 minutes early."]]],
+["Explain a project (STAR)",[
+["1. Situation","Start with the problem you wanted to solve."],
+["2. Task","Say clearly what your part was."],
+["3. Action","Explain what you did and which tools you used, in simple steps."],
+["4. Result","Share the outcome, with a number if you can."],
+["5. Learned","End with what you learned and what you would improve."]]],
+["30-day job plan",[
+["Days 1-7: set up","Make your resume and LinkedIn profile using the guides here, and collect your projects."],
+["Days 8-20: learn","Run a Job Match, then follow the study plan for your missing skills every day."],
+["Days 21-25: practice","Do quizzes and mock interviews. Repeat the hard ones."],
+["Days 26-30: apply","Apply to 5 jobs a day, tailor your resume each time, and keep a sheet of replies."]]],
+["Aptitude basics",[
+["Percentages, ratio, averages","Learn the basic formulas and solve 10 questions a day."],
+["Time and work, speed and distance","Most questions are variations of work = rate x time."],
+["Number series and puzzles","Look for patterns like add, multiply or alternate."],
+["Practice with a timer","Do 20 questions in 20 minutes. Speed matters as much as accuracy."]]]];
 
-      // Skills you had + skills you just proved with the test
-      var ready = Math.round((alreadyHave + score) / totalNeeded * 100);
+var HR=[["Tell me about yourself.",["student","project","skill","goal"],"I am a final year student who enjoys learning. I have done projects in my subject, I am strong in the basics, and my goal is to grow in a good team."],["What are your strengths?",["learn","team","problem","consistent"],"I learn quickly, I work well in a team, and I keep trying until a problem is solved."],["Why should we hire you?",["skill","project","learn","contribute"],"I have the skills this role needs, I have done real projects, and I learn fast. I can contribute to the team from the first month."]];
+var PR=[["Explain your best project in 2 minutes.",["problem","built","used","result"],"State the problem, say what you built and which tools you used, share the result, and end with what you learned."],["What challenge did you face and how did you solve it?",["problem","tried","solved","learned"],"I faced a problem, tried different solutions, asked for help, solved it step by step, and learned to stay patient."],["What would you improve in your project?",["improve","feature","test","users"],"I would improve accuracy, add features, test with more users, and make it faster or cheaper."]];
 
-      var text = "<b>Your score: " + score + " out of " + currentMissing.length + "</b>";
-      text += "<h2>Job readiness: " + ready + "%</h2>";
-      text += "<div class='bar'><div class='fill' style='width:" + ready + "%'></div></div>";
-      if (ready === 100) {
-        text += "<p><b>You are job-ready for this role. Go apply!</b></p>";
-      } else {
-        text += "<p>Learn the skills you missed, then take the test again to reach 100%.</p>";
-      }
-      document.getElementById("score").innerHTML = text;
-    }
+var CH=[
+{n:"sumArray",t:"Sum of an array",d:"Write sumArray(arr) that returns the sum of all numbers in the array. An empty array gives 0.",st:"function sumArray(arr) {\n  // write your code here\n}",h:"Make total = 0, loop over arr, add each number, return total.",sol:"function sumArray(arr) {\n  var total = 0;\n  for (var i = 0; i < arr.length; i++) {\n    total = total + arr[i];\n  }\n  return total;\n}",tests:[{a:[[1,2,3]],e:6},{a:[[]],e:0},{a:[[-1,1,5]],e:5}]},
+{n:"isEven",t:"Even or odd",d:"Write isEven(n) that returns true if n is even and false if odd.",st:"function isEven(n) {\n  // write your code here\n}",h:"The % operator gives the remainder. Even numbers have remainder 0 when divided by 2.",sol:"function isEven(n) {\n  return n % 2 === 0;\n}",tests:[{a:[4],e:true},{a:[7],e:false},{a:[0],e:true}]},
+{n:"reverseString",t:"Reverse a string",d:"Write reverseString(s) that returns the string backwards. 'abc' becomes 'cba'.",st:"function reverseString(s) {\n  // write your code here\n}",h:"Start with result = ''. Loop from the last letter to the first, adding each letter.",sol:"function reverseString(s) {\n  var result = '';\n  for (var i = s.length - 1; i >= 0; i--) {\n    result = result + s[i];\n  }\n  return result;\n}",tests:[{a:["abc"],e:"cba"},{a:[""],e:""},{a:["hello"],e:"olleh"}]}];
 
-    document.getElementById("analyze").onclick = function () {
-      var resume = document.getElementById("resume").value.toLowerCase();
-      var job = document.getElementById("job").value.toLowerCase();
+var JT={internship:"Internship tip: show your projects and eagerness to learn.",fulltime:"Full-time tip: show depth. Explain what you built, the tools and the result.",parttime:"Part-time tip: say which hours you are free and show you finish work on time.",remote:"Remote tip: show you can work alone. Mention clear writing and self-discipline."};
+var ET={fresher:"Resume tip for freshers: add 2 or 3 projects, each with a one-line result.",junior:"Resume tip for 1-3 years: add numbers to your work, like 'cut report time by 30%'.",mid:"Resume tip for 3-5 years: show ownership. Mention what you led or improved."};
+var COL=["#4f46e5","#059669","#d97706","#db2777","#0891b2","#7c3aed"];
+var LANGS=["English","Hindi","Telugu","Tamil"];
 
-      var needed = [];
-      var missing = [];
+/* ===== helpers ===== */
+var $=function(i){return document.getElementById(i);};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function store(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function read(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function jget(k,d){try{return JSON.parse(read(k)||"null")||d;}catch(e){return d;}}
+function prof(){return jget("jrh_profile",null);}
+function key(n){var p=prof();return "jrh_"+(p?p.email:"guest")+"_"+n;}
+function sdate(d){return d.toLocaleDateString("en-IN",{day:"numeric",month:"short"});}
+function words(t){t=t.trim();return t?t.split(/\s+/).length:0;}
+function has(text,s){return new RegExp("(^|[^a-z0-9])"+s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"($|[^a-z0-9])").test(text.toLowerCase());}
+function link(name,url,active){return "<a class='chip"+(active?" active":"")+"' href='"+esc(url)+"' target='_blank' rel='noopener'>"+esc(name)+"</a>";}
 
-      for (var i = 0; i < skills.length; i++) {
-        var skill = skills[i];
-        if (job.includes(skill)) {
-          needed.push(skill);
-          if (!resume.includes(skill)) {
-            missing.push(skill);
-          }
-        }
-      }
+var cur=FD[read("jrh_field")]?read("jrh_field"):"IT / Software";
+var lang=LANGS.indexOf(read("jrh_lang"))>-1?read("jrh_lang"):"English";
+var currentMissing=[],delIndex=-1,test=null,timer=null,solved={},curMock="",stack=[];
+function skl(){return FD[cur].s;}
+function kits(){return KG.concat([FD[cur].kit]);}
+function rounds(){return {"HR round":HR,"Technical round":FD[cur].tech,"Project round":PR};}
+function qz(s){return {q:S[s][3],o:S[s][4],a:S[s][5]};}
 
-      if (needed.length === 0) {
-        document.getElementById("result").innerHTML = "<p>No known skills found in the job description.</p>";
-        return;
-      }
+function saveSub(title,score,total,wrong){
+  var subs=jget(key("subs"),[]);
+  subs.unshift({title:title,score:score,total:total,wrong:wrong||[],date:new Date().toLocaleDateString("en-IN")});
+  store(key("subs"),JSON.stringify(subs.slice(0,50)));
+  var p=prof(),pct=Math.round(score/total*100);
+  if(p){var b=jget("jrh_board",{}),o=b[p.email]||{name:p.name,best:0,tests:0};o.name=p.name;o.tests++;if(pct>o.best){o.best=pct;}b[p.email]=o;store("jrh_board",JSON.stringify(b));}
+}
 
-      totalNeeded = needed.length;
-      alreadyHave = needed.length - missing.length;
+/* ===== views and pages ===== */
+function showView(v){
+  if(v!=="page"){stack=[];}
+  document.querySelectorAll(".view").forEach(function(x){x.className="view";});
+  $("v_"+v).className="view on";
+  document.querySelectorAll(".tab").forEach(function(t){t.className="tab"+(t.getAttribute("data-v")===v?" on":"");});
+  if(v==="dash"){renderDash();}
+  if(v==="practice"){renderPractice();}
+}
+document.querySelectorAll(".tab").forEach(function(t){t.onclick=function(){showView(t.getAttribute("data-v"));};});
+function go(fn){stack.push(fn);showView("page");fn();}
+function back(){stack.pop();if(stack.length){stack[stack.length-1]();}else{showView("dash");}}
+function setPage(h){$("pg").innerHTML="<button class='chip' onclick='back()'>&larr; Back</button>"+h;$("main").scrollTop=0;}
 
-      var percent = Math.round(alreadyHave / totalNeeded * 100);
+function showBox(h,w){$("mbox").style.width=w||"";$("mbox").innerHTML=h;$("ov").style.display="flex";}
+function openBox(h,w){showBox(h+"<div class='mb'><button class='chip' onclick='closeBox()'>Close</button></div>",w);}
+function closeBox(){$("ov").style.display="none";}
+$("ov").onclick=function(e){if(e.target===this){closeBox();}};
 
-      var html = "<h2>" + percent + "% match</h2>";
-      html += "<div class='bar'><div class='fill' style='width:" + percent + "%'></div></div>";
-      html += "<p><b>Missing skills:</b> " + (missing.length ? missing.join(", ") : "none, great job!") + "</p>";
+/* ===== login and profile ===== */
+function loginForm(){
+  showBox("<h2>Login</h2><input id='lN' placeholder='Full name'><input id='lU' placeholder='Username'><input id='lE' type='email' placeholder='Email'><input id='lM' type='tel' placeholder='Mobile number (10 digits)'><div class='err' id='lErr'></div><div class='mb'><button class='chip active' id='lGo'>Login</button><button class='chip' onclick='closeBox()'>Cancel</button></div>");
+  $("lGo").onclick=function(){
+    var n=$("lN").value.trim(),u=$("lU").value.trim(),e=$("lE").value.trim().toLowerCase(),m=$("lM").value.trim();
+    if(!n||!u){$("lErr").textContent="Please enter your name and username.";return;}
+    if(e.indexOf("@")<1||e.indexOf(".")<0){$("lErr").textContent="Please enter a valid email.";return;}
+    if(!/^[0-9]{10}$/.test(m)){$("lErr").textContent="Mobile number must be 10 digits.";return;}
+    store("jrh_profile",JSON.stringify({name:n,user:u,email:e,mobile:m}));
+    closeBox();showProfile();showView("dash");
+  };
+}
+function profileBox(){
+  var p=prof();if(!p){loginForm();return;}
+  var h="<h2>Your profile</h2>";
+  [["Name",p.name],["Username",p.user],["Email",p.email],["Mobile",p.mobile]].forEach(function(r){h+="<div class='row'><span class='muted'>"+r[0]+"</span><span>"+esc(r[1])+"</span></div>";});
+  openBox(h);
+}
+function showProfile(){
+  var p=prof();
+  $("loginBtn").style.display=p?"none":"inline-block";
+  $("avatar").style.display=p?"flex":"none";
+  if(p){$("avL").textContent=p.name.charAt(0).toUpperCase();$("avN").textContent=p.name.split(" ")[0];}
+  renderHistory();
+}
+$("loginBtn").onclick=loginForm;$("avatar").onclick=profileBox;
 
-      if (missing.length > 0) {
-        missing.sort(function (a, b) { return roadmap[a].days - roadmap[b].days; });
-        currentMissing = missing;
+/* ===== settings menu ===== */
+function setTheme(m){
+  document.body.className=(m==="dark")?"dark":"";
+  $("lightBtn").className="chip"+(m==="dark"?"":" active");
+  $("darkBtn").className="chip"+(m==="dark"?" active":"");
+  store("jrh_theme",m);
+}
+$("gear").onclick=function(e){e.stopPropagation();$("hmenu").style.display="none";$("settings").style.display=($("settings").style.display==="block")?"none":"block";};
+$("settings").onclick=function(e){
+  e.stopPropagation();
+  var a=e.target.getAttribute("data-a");if(!a){return;}
+  if(a==="appear"){$("apRow").style.display=($("apRow").style.display==="block")?"none":"block";return;}
+  $("settings").style.display="none";
+  if(a==="profile"){profileBox();}
+  if(a==="board"){boardBox();}
+  if(a==="tt"){timetable();}
+  if(a==="marks"){marksBox();}
+  if(a==="subs"){subsBox();}
+  if(a==="logout"){try{localStorage.removeItem("jrh_profile");}catch(x){}showProfile();showView("dash");}
+};
+$("lightBtn").onclick=function(){setTheme("light");};
+$("darkBtn").onclick=function(){setTheme("dark");};
+document.addEventListener("click",function(e){
+  $("settings").style.display="none";$("hmenu").style.display="none";
+  if(!$("sw").contains(e.target)){$("qres").style.display="none";}
+});
 
-        html += "<h2>Your learning roadmap</h2>";
-        var totalDays = 0;
+function boardBox(){
+  var b=jget("jrh_board",{}),a=Object.keys(b).map(function(k){return b[k];});
+  a.sort(function(x,y){return y.best-x.best;});
+  var h="<h2>Leaderboard</h2><div class='muted'>People who took tests on this device. Login to appear here.</div>";
+  if(!a.length){h+="<p>No scores yet.</p>";}
+  a.forEach(function(o,i){h+="<div class='row'><span>#"+(i+1)+" "+esc(o.name)+"</span><span>"+o.best+"% best ("+o.tests+" tests)</span></div>";});
+  openBox(h);
+}
+function subsBox(){
+  var s=jget(key("subs"),[]),h="<h2>Submissions</h2>";
+  if(!s.length){h+="<p>No submissions yet.</p>";}
+  s.forEach(function(x){h+="<div class='row'><span>"+esc(x.title)+"<br><span class='muted'>"+esc(x.date)+"</span></span><span>"+x.score+" / "+x.total+"</span></div>";});
+  openBox(h);
+}
+function marksBox(){
+  var m=jget(key("marks"),[]),h="<h2>Bookmarks</h2>";
+  if(!m.length){h+="<p>Nothing bookmarked. Open a skill and click Bookmark.</p>";}
+  m.forEach(function(s){if(S[s]){h+="<button class='chip active' onclick=\"closeBox();openSkill('"+esc(s)+"')\">"+esc(s)+"</button>";}});
+  openBox(h);
+}
 
-        for (var j = 0; j < missing.length; j++) {
-          var item = roadmap[missing[j]];
-          totalDays = totalDays + item.days;
-          html += "<div class='step'><b>Step " + (j + 1) + ": " + missing[j] + "</b> (about " + item.days + " days)<br>" + item.learn + "</div>";
-        }
+/* ===== study timetable ===== */
+function timetable(){
+  var t=jget(key("tt"),{}),D=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],L=["Morning","Afternoon","Evening"];
+  var h="<h2>Study timetable</h2><div class='muted'>Type what you will study in each slot.</div>";
+  D.forEach(function(d,i){
+    h+="<div style='margin:10px 0 2px'><b>"+d+"</b></div><div style='display:flex;gap:6px'>";
+    L.forEach(function(s,j){h+="<input class='tt' data-k='"+i+"_"+j+"' placeholder='"+s+"' value='"+esc(t[i+"_"+j]||"")+"' style='flex:1;min-width:0;margin:0'>";});
+    h+="</div>";
+  });
+  showBox(h+"<div class='mb'><button class='chip active' id='ttS'>Save</button><button class='chip' id='ttA'>Auto-fill from my job match</button><button class='chip' onclick='closeBox()'>Close</button></div><div class='muted' id='ttM'></div>","620px");
+  $("ttS").onclick=function(){var o={};document.querySelectorAll(".tt").forEach(function(x){o[x.getAttribute("data-k")]=x.value;});store(key("tt"),JSON.stringify(o));$("ttM").textContent="Saved.";};
+  $("ttA").onclick=function(){
+    var pl=jget(key("plan"),null),m=pl?pl.miss:currentMissing;
+    if(!m.length){$("ttM").textContent="Run a Job Match first, so I know your missing skills.";return;}
+    for(var i=0;i<7;i++){document.querySelector(".tt[data-k='"+i+"_2']").value="Study "+m[i%m.length];}
+    $("ttM").textContent="Filled the evening slots. Click Save to keep it.";
+  };
+}
 
-        html += "<p><b>Total time: about " + totalDays + " days</b></p>";
+/* ===== history with three dots ===== */
+function renderHistory(){
+  var box=$("history");box.textContent="";
+  var list=jget(key("hist"),[]);
+  if(!list.length){var e=document.createElement("div");e.className="hi muted";e.textContent="No analyses yet";box.appendChild(e);return;}
+  list.forEach(function(en,i){
+    var d=document.createElement("div");d.className="hi";
+    var t=document.createElement("span");t.className="ht";t.textContent=en.title;
+    t.onclick=function(){showView("match");$("resume").value=en.resume;$("job").value=en.job;counts();runAnalysis(false);};
+    var b=document.createElement("button");b.className="dots";b.title="Options";b.innerHTML="&#8942;";
+    b.onclick=function(ev){ev.stopPropagation();$("settings").style.display="none";var r=b.getBoundingClientRect(),m=$("hmenu");m.style.display="block";m.style.left=r.left+"px";m.style.top=(r.bottom+4)+"px";delIndex=i;};
+    d.appendChild(t);d.appendChild(b);box.appendChild(d);
+  });
+}
+$("delBtn").onclick=function(){
+  var list=jget(key("hist"),[]);
+  if(delIndex>=0){list.splice(delIndex,1);store(key("hist"),JSON.stringify(list));}
+  renderHistory();
+};
+function addHistory(title,r,j){
+  var list=jget(key("hist"),[]).filter(function(e){return !(e.resume===r&&e.job===j);});
+  list.unshift({title:title,resume:r,job:j});
+  store(key("hist"),JSON.stringify(list.slice(0,15)));renderHistory();
+}
 
-        html += "<h2>Skill test</h2>";
-        for (var m = 0; m < missing.length; m++) {
-          var test = quizzes[missing[m]];
-          html += "<div class='step'><b>" + missing[m] + ":</b> " + test.q;
-          for (var o = 0; o < test.options.length; o++) {
-            html += "<label><input type='radio' name='q" + m + "' value='" + o + "'> " + test.options[o] + "</label>";
-          }
-          html += "<span id='fb" + m + "'></span></div>";
-        }
-        html += "<button id='submitTest' onclick='checkTest()'>Check my answers</button>";
-        html += "<div id='score'></div>";
-      }
+/* ===== study plan and calendar ===== */
+function daysFor(miss,h){var dl=[];miss.forEach(function(s,j){var n=Math.ceil(S[s][0]*2/h);for(var d=0;d<n;d++){dl.push(j);}});return dl;}
+function calHTML(miss,dl,start,ti){
+  var lg="";miss.forEach(function(s,j){lg+="<span style='background:"+COL[j%COL.length]+"'>"+esc(s)+"</span>";});
+  var h="<div class='lg'>"+lg+"</div><div class='cal'>";
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(function(n){h+="<div class='head'>"+n+"</div>";});
+  for(var b=0;b<start.getDay();b++){h+="<div></div>";}
+  dl.forEach(function(si,c){var d=new Date(start);d.setDate(d.getDate()+c);h+="<div class='cell"+(c===ti?" today":"")+"' style='background:"+COL[si%COL.length]+"' title='"+esc(miss[si])+"'>"+sdate(d)+"</div>";});
+  return h+"</div>";
+}
 
-      document.getElementById("result").innerHTML = html;
-    };
-  </script>
+/* ===== dashboard ===== */
+function renderDash(){
+  var p=prof();
+  var h="<h2>Welcome"+(p?", "+esc(p.name.split(" ")[0]):"")+"</h2><div class='muted'>Field: "+esc(cur)+". Change it at the top.</div>"+(p?"":"<div class='muted'>Login at the top right to save your progress.</div>");
+  var pl=jget(key("plan"),null);
+  if(pl&&pl.field===cur&&pl.miss.every(function(s){return S[s];})){
+    var dl=daysFor(pl.miss,pl.hours),t=new Date();t.setHours(0,0,0,0);
+    var idx=Math.max(0,Math.floor((t.getTime()-pl.start)/864e5));
+    h+="<h3>Continue learning</h3>";
+    if(idx<dl.length){
+      var s=pl.miss[dl[idx]],first=dl.indexOf(dl[idx]),tot=dl.filter(function(x){return x===dl[idx];}).length;
+      h+="<div class='step'>Today: <b>"+esc(s)+"</b>, day "+(idx-first+1)+" of "+tot+" (day "+(idx+1)+" of "+dl.length+" in your plan)<br><button class='go' onclick=\"openSkill('"+esc(s)+"')\">Continue "+esc(s)+"</button></div>";
+    }else{h+="<div class='step'>Your plan is finished. Run a new Job Match to get the next plan.</div>";}
+    h+="<h3>Your study calendar</h3>"+calHTML(pl.miss,dl,new Date(pl.start),idx);
+  }
+  h+="<div class='dgrid'>"+
+  "<div class='dcard' onclick='go(skillsPage)'><b>Skills</b><span class='muted'>Plans, free courses, projects for every skill.</span></div>"+
+  "<div class='dcard' onclick=\"showView('practice')\"><b>Practice skills</b><span class='muted'>Quizzes, a timed contest"+(cur==="IT / Software"?" and coding problems":"")+".</span></div>"+
+  "<div class='dcard' onclick='go(mockPage)'><b>Mock interviews</b><span class='muted'>HR, technical and project rounds with feedback.</span></div>"+
+  "<div class='dcard' onclick='go(kitsPage)'><b>Job preparation kits</b><span class='muted'>Resume, LinkedIn, interviews and career steps.</span></div></div>";
+  $("v_dash").innerHTML=h;
+}
 
+/* ===== skills pages ===== */
+function openSkill(n){go(function(){skillPage(n);});}
+function setLang(l,s){lang=l;store("jrh_lang",l);skillPage(s);}
+function toggleMark(s){var m=jget(key("marks"),[]),i=m.indexOf(s);if(i>-1){m.splice(i,1);}else{m.push(s);}store(key("marks"),JSON.stringify(m));skillPage(s);}
+function skillsPage(){
+  var h="<h2>Skills</h2><div class='muted'>Click a skill to open its learning page.</div><div class='dgrid'>";
+  skl().forEach(function(s){h+="<div class='dcard' onclick=\"openSkill('"+esc(s)+"')\"><b>"+esc(s)+"</b><span class='muted'>about "+S[s][0]+" days</span></div>";});
+  setPage(h+"</div>");
+}
+function skillPage(s){
+  store(key("lastskill"),s);
+  var d=S[s][0],st=S[s][2],per=Math.ceil(d/st.length),marked=jget(key("marks"),[]).indexOf(s)>-1;
+  var h="<h2>"+esc(s)+"</h2><div class='muted'>About "+d+" days at 2 hours a day</div>";
+  h+="<h3>1. Basics: what to learn</h3><div class='step'>"+esc(S[s][1])+"</div>";
+  h+="<h3>2. Where to learn (free)</h3><div class='muted'>Pick the language you understand best:</div>";
+  LANGS.forEach(function(l){h+="<button class='chip"+(l===lang?" active":"")+"' onclick=\"setLang('"+l+"','"+esc(s)+"')\">"+l+"</button>";});
+  var yt="https://www.youtube.com/results?search_query="+encodeURIComponent(s+" tutorial for beginners"+(lang==="English"?"":" in "+lang));
+  h+="<div class='step'>"+link("YouTube: "+s+" in "+lang,yt,true);
+  SITES[FD[cur].t].forEach(function(x){h+=link(x[0],x[1]);});
+  h+=link("Search free courses","https://www.google.com/search?q="+encodeURIComponent("learn "+s+" free course for beginners"));
+  h+="<p class='muted'>Tip: choose a video with good reviews and a recent upload date. Watch 30 minutes, then try it yourself.</p></div>";
+  h+="<h3>3. Day-by-day plan</h3><div class='step'>";
+  st.forEach(function(t,i){var a=Math.min(i*per+1,d),b=Math.min(d,(i+1)*per);h+="<p><b>"+(a===b?"Day "+a:"Days "+a+"-"+b)+":</b> "+esc(t)+"</p>";});
+  h+="</div><h3>4. Practice problems</h3><div class='step'><button class='go' style='margin:0' onclick=\"practiceSkill('"+esc(s)+"')\">Take the "+esc(s)+" quiz</button> "+link("Find more practice problems","https://www.google.com/search?q="+encodeURIComponent(s+" practice problems for beginners"))+"</div>";
+  h+="<h3>5. Project</h3><div class='step'>"+esc(S[s][6])+"<br><span class='muted'>Add it to your resume with one line about the result.</span></div>";
+  h+="<h3>6. 30-day plan</h3><div class='step'><p><b>Week 1 (days 1-7):</b> Learn the basics from a video in your language.</p><p><b>Week 2 (days 8-14):</b> Follow the day-by-day plan and take the quiz.</p><p><b>Week 3 (days 15-21):</b> Build the project.</p><p><b>Week 4 (days 22-30):</b> Revise, solve practice problems, do a mock interview, and update your resume.</p></div>";
+  h+="<button class='chip' onclick=\"toggleMark('"+esc(s)+"')\">"+(marked?"&#9733; Bookmarked":"&#9734; Bookmark")+"</button>";
+  setPage(h);
+}
+
+/* ===== kit pages ===== */
+function kitsPage(){
+  var h="<h2>Job preparation kits</h2><div class='dgrid'>";
+  kits().forEach(function(k,i){h+="<div class='dcard' onclick='go(function(){kitPage("+i+")})'><b>"+esc(k[0])+"</b><span class='muted'>"+k[1].length+" steps</span></div>";});
+  setPage(h+"</div>");
+}
+function kitPage(i){
+  var k=kits()[i],h="<h2>"+esc(k[0])+"</h2>";
+  if(k[2]){k[2].forEach(function(l){h+=link(l[0],l[1],true);});}
+  h+="<div class='muted'>Follow the steps in order. Click a step to read how to do it.</div>";
+  k[1].forEach(function(it,n){h+="<details"+(n===0?" open":"")+"><summary>"+esc(it[0])+"</summary><p>"+esc(it[1])+"</p></details>";});
+  setPage(h);
+}
+
+/* ===== problems: coding and quizzes ===== */
+function renderPractice(){
+  var it=(cur==="IT / Software");
+  $("codeWrap").style.display=it?"block":"none";
+  $("cinfo").textContent="All "+skl().length+" skills, 5 minutes, timer on.";
+  var marks=jget(key("marks"),[]),box=$("skillList");box.textContent="";
+  skl().forEach(function(s){
+    var w=document.createElement("span");
+    var c=document.createElement("button");c.className="chip";c.textContent=s;c.onclick=function(){practiceSkill(s);};
+    var st=document.createElement("button");st.className="chip";st.innerHTML=(marks.indexOf(s)>-1)?"&#9733;":"&#9734;";
+    st.onclick=function(){var m=jget(key("marks"),[]),i=m.indexOf(s);if(i>-1){m.splice(i,1);}else{m.push(s);}store(key("marks"),JSON.stringify(m));renderPractice();};
+    w.appendChild(c);w.appendChild(st);box.appendChild(w);
+  });
+  var cl=$("codeList");cl.textContent="";
+  CH.forEach(function(c,i){var b=document.createElement("button");b.className="chip";b.textContent=(i+1)+". "+c.t;b.onclick=function(){openChallenge(i);};cl.appendChild(b);});
+}
+function openChallenge(i){
+  var c=CH[i];
+  $("codeArea").innerHTML="<div class='step'><b>"+esc(c.t)+"</b><br>"+esc(c.d)+"</div><textarea id='code' class='code' spellcheck='false'>"+esc(c.st)+"</textarea><div><button class='go' id='runB'>Run tests</button> <button class='chip' id='hintB'>Hint</button> <button class='chip' id='solB'>Show solution</button></div><div id='cres'></div><div id='chelp'></div>";
+  $("runB").onclick=function(){runCode(i);};
+  $("hintB").onclick=function(){$("chelp").innerHTML="<div class='step tip'>"+esc(c.h)+"</div>";};
+  $("solB").onclick=function(){$("chelp").innerHTML="<div class='step tip'>Try it yourself first. One solution:<pre>"+esc(c.sol)+"</pre></div>";};
+}
+function runCode(i){
+  var c=CH[i],out="",pass=0;
+  try{
+    var fn=new Function($("code").value+"\nreturn "+c.n+";")();
+    c.tests.forEach(function(t){
+      var r;try{r=fn.apply(null,t.a);}catch(e){r="Error: "+e.message;}
+      var ok=JSON.stringify(r)===JSON.stringify(t.e);if(ok){pass++;}
+      out+="<div class='row'><span>"+esc(c.n+"("+t.a.map(function(x){return JSON.stringify(x);}).join(", ")+")")+"</span><span class='"+(ok?"ok":"err")+"'>"+(ok?"Passed":"Expected "+esc(JSON.stringify(t.e))+", got "+esc(String(JSON.stringify(r))))+"</span></div>";
+    });
+  }catch(e){out="<div class='err'>There is a problem in your code: "+esc(e.message)+"</div>";}
+  out="<h3>"+pass+" / "+c.tests.length+" tests passed</h3>"+out;
+  if(pass===c.tests.length){out+="<p class='ok'><b>All tests passed. Great job!</b></p>";if(!solved[c.n]){solved[c.n]=1;saveSub("Coding: "+c.t,pass,c.tests.length,[]);}}
+  $("cres").innerHTML=out;
+}
+function practiceSkill(s){showView("practice");startTest([s],s+" practice",0);}
+$("startContest").onclick=function(){startTest(skl().slice(),"Skills contest",300);};
+function startTest(list,title,secs){
+  clearInterval(timer);test={list:list,title:title,done:false};
+  var h="<h3>"+esc(title)+"</h3>"+(secs?"<div id='clock' class='clock'></div>":"");
+  list.forEach(function(s,i){
+    var q=qz(s);h+="<div class='step'><b>"+(i+1)+". "+esc(s)+":</b> "+q.q;
+    q.o.forEach(function(o,j){h+="<label><input type='radio' name='t"+i+"' value='"+j+"'> "+o+"</label>";});
+    h+="<span id='tf"+i+"'></span></div>";
+  });
+  h+="<button class='go' id='subT' onclick='gradeTest()'>Submit</button><div id='tres'></div>";
+  $("testArea").innerHTML=h;$("testArea").scrollIntoView({behavior:"smooth"});
+  if(secs){var left=secs;var tick=function(){$("clock").textContent="Time left: "+Math.floor(left/60)+":"+(left%60<10?"0":"")+(left%60);if(left<=0){gradeTest();return;}left--;};tick();timer=setInterval(tick,1000);}
+}
+function gradeTest(){
+  if(!test||test.done){return;}
+  test.done=true;clearInterval(timer);
+  var score=0,wrong=[];
+  test.list.forEach(function(s,i){
+    var q=qz(s),c=document.querySelector("input[name='t"+i+"']:checked"),f=$("tf"+i);
+    if(c&&Number(c.value)===q.a){score++;f.innerHTML=" <b>Correct!</b>";}else{wrong.push(s);f.innerHTML=" <b>Not quite.</b> Answer: "+q.o[q.a];}
+  });
+  var total=test.list.length;saveSub(test.title,score,total,wrong);
+  $("tres").innerHTML="<h2>Score: "+score+" / "+total+" ("+Math.round(score/total*100)+"%)</h2>"+(prof()?"":"<p class='muted'>Login to appear on the leaderboard.</p>");
+  $("subT").disabled=true;
+}
+
+/* ===== mock interview pages ===== */
+function mockPage(){
+  var h="<h2>Mock interviews</h2><div class='muted'>Pick a round, type your answers, then get feedback.</div><div class='dgrid'>";
+  Object.keys(rounds()).forEach(function(t){h+="<div class='dcard' onclick=\"go(function(){roundPage('"+t+"')})\"><b>"+esc(t)+"</b><span class='muted'>"+rounds()[t].length+" questions</span></div>";});
+  setPage(h+"</div>");
+}
+function roundPage(track){
+  curMock=track;
+  var h="<h2>"+esc(track)+"</h2><div class='muted'>Answer in 3 or 4 sentences, as if speaking to the interviewer.</div>";
+  rounds()[track].forEach(function(q,i){h+="<div class='step'><b>Question "+(i+1)+":</b> "+esc(q[0])+"<br><textarea id='ma"+i+"' style='height:80px;margin-top:6px' placeholder='Type your answer...'></textarea><div id='mf"+i+"'></div></div>";});
+  setPage(h+"<button class='go' id='mockS'>Get feedback</button><div id='mres'></div>");
+  $("mockS").onclick=gradeMock;
+}
+function gradeMock(){
+  var qs=rounds()[curMock],good=0;
+  qs.forEach(function(q,i){
+    var ans=$("ma"+i).value,low=ans.toLowerCase(),w=words(ans);
+    var hit=q[1].filter(function(k){return low.includes(k);}),miss=q[1].filter(function(k){return !low.includes(k);});
+    var ok=hit.length>=Math.ceil(q[1].length/2)&&w>=20;if(ok){good++;}
+    var f="<p><b class='"+(ok?"ok":"err")+"'>"+(ok?"Good answer":"Needs work")+"</b> ("+w+" words)</p><p>Ideas you covered: "+(hit.length?esc(hit.join(", ")):"none")+"<br>Ideas to add: "+(miss.length?esc(miss.join(", ")):"none")+"</p>";
+    if(w<20){f+="<p>Your answer is short. Aim for at least 30 words.</p>";}
+    $("mf"+i).innerHTML=f+"<p class='muted'>Sample answer: "+esc(q[2])+"</p>";
+  });
+  saveSub("Mock: "+curMock,good,qs.length,[]);
+  $("mres").innerHTML="<h2>"+good+" of "+qs.length+" answers were strong</h2><p class='muted'>This feedback checks key ideas and length. It is not a real AI review yet.</p>";
+  $("mockS").disabled=true;
+}
+
+/* ===== job match ===== */
+$("hoursSel").onchange=function(){$("customHours").style.display=(this.value==="custom")?"inline-block":"none";};
+function hrs(){var v=$("hoursSel").value,h=(v==="custom")?Number($("customHours").value):Number(v);return(h&&h>0)?h:2;}
+function counts(){$("rc").textContent=words($("resume").value)+" words";$("jc").textContent=words($("job").value)+" words";}
+$("resume").oninput=counts;$("job").oninput=counts;
+$("rclear").onclick=function(){$("resume").value="";counts();};
+$("jclear").onclick=function(){$("job").value="";$("roleSel").selectedIndex=0;counts();};
+$("rsample").onclick=function(){$("resume").value=FD[cur].resume;counts();};
+$("roleSel").onchange=function(){if(this.value){$("job").value=FD[cur].roles[this.value];counts();}};
+function readF(i,b){$(i).onchange=function(){var f=this.files[0];if(!f){return;}var r=new FileReader();r.onload=function(){$(b).value=r.result;counts();};r.readAsText(f);};}
+readF("rfile","resume");readF("jfile","job");
+$("newBtn").onclick=function(){showView("match");$("resume").value="";$("job").value="";$("result").innerHTML="";counts();};
+function practiceMissing(){showView("practice");startTest(currentMissing.slice(),"Missing skills test",0);}
+
+function runAnalysis(save){
+  var rR=$("resume").value,jR=$("job").value,hours=hrs();
+  var start=new Date();start.setHours(0,0,0,0);
+  var need=[],miss=[];
+  skl().forEach(function(s){if(has(jR,s)){need.push(s);if(!has(rR,s)){miss.push(s);}}});
+  if(!need.length){$("result").innerHTML="<p>No known skills for <b>"+esc(cur)+"</b> found in the job description. Check the Field at the top.</p>";return;}
+  if(save){addHistory(need.slice(0,3).join(", ")+" job",rR,jR);}
+  var pc=Math.round((need.length-miss.length)/need.length*100);
+  var h="<h2>"+pc+"% match</h2><div class='bar'><div class='fill' style='width:"+pc+"%'></div></div><p><b>Missing skills:</b> "+(miss.length?miss.join(", "):"none, great job!")+"</p>";
+  if(miss.length){
+    miss.sort(function(a,b){return S[a][0]-S[b][0];});currentMissing=miss;
+    if(save){store(key("plan"),JSON.stringify({miss:miss,hours:hours,start:start.getTime(),field:cur}));}
+    h+="<h2>Your learning roadmap</h2>";
+    var dl=[];
+    miss.forEach(function(s,j){
+      var dn=Math.ceil(S[s][0]*2/hours),first=dl.length;
+      for(var d=0;d<dn;d++){dl.push(j);}
+      var f=new Date(start);f.setDate(f.getDate()+first);var t=new Date(start);t.setDate(t.getDate()+dl.length-1);
+      h+="<div class='step'><b>Step "+(j+1)+": "+esc(s)+"</b> ("+dn+" days, "+sdate(f)+" to "+sdate(t)+")<br>"+esc(S[s][1])+"<br><button class='chip active' onclick=\"openSkill('"+esc(s)+"')\">Learn this skill</button></div>";
+    });
+    h+="<p><b>Total time: about "+dl.length+" days</b> (studying "+hours+" hour(s) a day)</p><h2>Your study calendar</h2>"+calHTML(miss,dl,start,0)+"<p class='muted'>Your plan is saved. Open the Dashboard any day to continue learning.</p><button class='go' onclick='practiceMissing()'>Test my missing skills</button>";
+  }
+  h+="<h2>Tips for you</h2><div class='step tip'>"+JT[$("jobType").value]+"</div><div class='step tip'>"+ET[$("exp").value]+"</div>";
+  $("result").innerHTML=h;
+}
+$("analyze").onclick=function(){runAnalysis(true);};
+
+/* ===== search ===== */
+$("q").oninput=function(){
+  var v=this.value.trim().toLowerCase(),box=$("qres");box.textContent="";
+  if(!v){box.style.display="none";return;}
+  var r=[];
+  skl().forEach(function(s){r.push(["Skill: "+s,function(){openSkill(s);}]);});
+  kits().forEach(function(k,i){r.push(["Guide: "+k[0],function(){go(function(){kitPage(i);});}]);});
+  Object.keys(rounds()).forEach(function(t){r.push(["Mock interview: "+t,function(){go(function(){roundPage(t);});}]);});
+  if(cur==="IT / Software"){CH.forEach(function(c,i){r.push(["Problem: "+c.t,function(){showView("practice");openChallenge(i);}]);});}
+  var hits=r.filter(function(x){return x[0].toLowerCase().indexOf(v)>-1;}).slice(0,8);
+  box.style.display="block";
+  if(!hits.length){var n=document.createElement("div");n.textContent="Nothing found";box.appendChild(n);return;}
+  hits.forEach(function(x){var d=document.createElement("div");d.textContent=x[0];d.onclick=function(){box.style.display="none";$("q").value="";x[1]();};box.appendChild(d);});
+};
+
+/* ===== field dropdown ===== */
+function applyField(name){
+  cur=name;store("jrh_field",name);
+  var rs=$("roleSel");rs.textContent="";
+  var o0=document.createElement("option");o0.value="";o0.textContent="Sample role...";rs.appendChild(o0);
+  Object.keys(FD[cur].roles).forEach(function(k){var o=document.createElement("option");o.textContent=k;rs.appendChild(o);});
+  $("result").innerHTML="";$("testArea").innerHTML="";$("codeArea").innerHTML="";currentMissing=[];
+  showView("dash");
+}
+Object.keys(FD).forEach(function(k){var o=document.createElement("option");o.textContent=k;$("fieldSel").appendChild(o);});
+$("fieldSel").value=cur;
+$("fieldSel").onchange=function(){applyField(this.value);};
+
+/* ===== start ===== */
+setTheme(read("jrh_theme")==="dark"?"dark":"light");
+showProfile();applyField(cur);counts();
+</script>
 </body>
 </html>
